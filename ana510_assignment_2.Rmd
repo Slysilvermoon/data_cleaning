@@ -1,0 +1,115 @@
+---
+title: "Assignment_2_data_cleaning"
+author: "Vaibhav Bhatt"
+date: "15/11/2021"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=TRUE}
+# Describing data
+```
+DATA SUMMARY: 
+This data uses "Centers for Disease Control and Prevention’s Behavioral Risk Factor Surveillance System (BRFSS)" to present the information on predicted population in a metropolitan division that is at high risk from COVID-19 and the number of ICU beds in that division.
+
+DATA FIELDS:
+ 1. MMSA: The name of the metropolitan area, micropolitan area or metropolitan division available in the CDC’s BRFSS
+ 2. total_percent_at_risk:	The percent of individuals in that area that are at high risk of becoming seriously ill from COVID-19, per CDC’s BRFSS
+ 3. high_risk_per_icu_bed:	The number of high risk individuals per ICU bed in that area
+ 4. high_risk_per_hospital: The number of high risk individuals per hospital in that area
+ 5. icu_beds: The number of ICU beds in the area, based on the Kaiser Family Foundation’s data
+ 6. hospitals:	The number of hospitals in the area, based on the Kaiser Family Foundation’s data
+ 7. total_at_risk:	The total number of high risk individuals in the area, per CDC’s BRFSS
+
+DATA FORMAT: Data is downloaded from the data source in .csv format, where values are separated by delimiter "comma". 
+
+```{r, echo=TRUE}
+library(readr)
+library(tidyverse)
+library(dplyr)
+
+# creating a variable that has csv file along with the local file path
+local_file <- "/Users/vaibhavbhatt/Downloads/mmsa-icu-beds.csv"
+
+# reading csv data using "readr" package and storing it in a variable "csv_data" using "read_csv"
+csv_data <- read_csv(local_file)
+
+# preview of the data loaded from local file into R
+head(csv_data)
+```
+
+```{r, echo=TRUE}
+# Performing two data cleaning functions:
+#   1. Find the rows with missing values
+#   2. Remove the rows with the missing values from the data
+
+# Check if the data frame or matrix has any missing value
+is.na(csv_data)
+
+# removing missing values from csv_data
+csv_data <- csv_data[complete.cases(csv_data), ]
+# partial_records <- sampledata[complete.cases(sampledata)]
+```
+
+```{r, echo=TRUE}
+# renaming the column names using dplyr
+library(dplyr)
+
+# manipulating column name in the csv_data and storing it in the original variable
+csv_data <- csv_data %>%
+  rename(patient_per_ICU_bed = high_risk_per_ICU_bed,
+         percent_at_risk = total_percent_at_risk,
+         )
+
+# Checking if the changes in the column names reflected in the "csv_data"
+head(csv_data)
+
+# changing the column names to all upper case
+csv_data <- csv_data %>%
+  rename_with(toupper)
+
+# checking if all the bulbs changed to upper case
+head(csv_data)
+```
+
+```{r, echo=TRUE}
+# converting csv_data into tibble data, for easier data analysis
+new_data <- as_tibble(csv_data)
+new_data
+
+# Extract rows by position
+new_data %>%
+  slice(1:40)
+
+# Filter rows by some logical argument
+csv_data %>%
+  filter('PATIENT_PER_ICU_BED' > 3500)
+```
+
+```{r, echo=TRUE, include=TRUE}
+# NEXT SET OF OUTPUT IS CREATED VIA INLINE CODE
+```
+This dataframe has `r nrow(csv_data)` rows and `r ncol(csv_data)` columns. The names of the columns and a brief description of each are in the table below:
+`r names(new_data)`
+
+```{r, echo=TRUE}
+# Three important columns chosen are:
+#     1. PATIENT_PER_ICU_BED
+#     2. HIGH_RISK_PER_HOSPITAL
+#     3. TOTAL_AT_RISK
+
+total_summary <- summarise_each(csv_data[, c("PATIENT_PER_ICU_BED", "HIGH_RISK_PER_HOSPITAL", "TOTAL_AT_RISK")], funs(mean))
+
+# publish summary
+total_summary
+
+
+
+```
+
